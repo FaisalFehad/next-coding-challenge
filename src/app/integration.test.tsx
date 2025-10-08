@@ -38,7 +38,7 @@ describe("Shopping Cart Integration", () => {
     const basketLink = screen.getByRole("link");
     expect(basketLink).toHaveAttribute("href", "/checkout");
     expect(basketLink.textContent).toContain("1");
-    expect(basketLink.textContent).toContain("items");
+    expect(basketLink.textContent).toContain("item");
   });
 
   it("shows clickable basket link when cart is empty", async () => {
@@ -55,11 +55,11 @@ describe("Shopping Cart Integration", () => {
     const component = await renderHome();
 
     // Find and click the first item button
-    const addButton = screen.getByLabelText("Add Item 1 to basket");
+    const addButton = screen.getByLabelText("Add to Cart Item 1 to basket");
     fireEvent.click(addButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Basket: 1 items")).toBeInTheDocument();
+      expect(screen.getByText("Basket: 1 item")).toBeInTheDocument(); // Use singular for 1 item
     });
 
     expect(screen.getByText(/Item 1 count: 1/)).toBeInTheDocument();

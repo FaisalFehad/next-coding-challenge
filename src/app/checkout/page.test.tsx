@@ -25,9 +25,9 @@ describe("Checkout Page", () => {
     it("displays empty cart message when no cart data", async () => {
       await renderCheckoutPage(false);
 
-      expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
+      expect(screen.getByText("Your basket is empty")).toBeInTheDocument();
       expect(
-        screen.getByText("Add some items to your cart before checking out.")
+        screen.getByText("Add some items to your basket before checking out.")
       ).toBeInTheDocument();
       expect(screen.getByText("Continue Shopping")).toBeInTheDocument();
     });
@@ -35,7 +35,7 @@ describe("Checkout Page", () => {
     it("displays empty cart message when cart data is empty array", async () => {
       await renderCheckoutPage(false);
 
-      expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
+      expect(screen.getByText("Your basket is empty")).toBeInTheDocument();
     });
   });
 
@@ -60,7 +60,7 @@ describe("Checkout Page", () => {
     it("displays cart items with correct details", async () => {
       await renderCheckoutPage(true); // Pass true to get cart with items
 
-      expect(screen.getByText("Items in your cart:")).toBeInTheDocument();
+      expect(screen.getByText("Items in your basket:")).toBeInTheDocument();
       expect(screen.getByText("Item 1")).toBeInTheDocument();
       expect(screen.getByText("Item 3")).toBeInTheDocument();
     });
@@ -80,7 +80,7 @@ describe("Checkout Page", () => {
     it("handles malformed JSON gracefully", async () => {
       await renderCheckoutPage(false); // This will use our helper to clear cart data
 
-      expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
+      expect(screen.getByText("Your basket is empty")).toBeInTheDocument();
     });
   });
 

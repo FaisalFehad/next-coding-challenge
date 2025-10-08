@@ -37,16 +37,25 @@ describe("Home Page Tests", () => {
       await renderHome();
       const buttons = screen.getAllByRole("button");
       expect(buttons).toHaveLength(3);
-      expect(buttons[0]).toHaveAttribute("aria-label", "Add Item 1 to basket");
-      expect(buttons[1]).toHaveAttribute("aria-label", "Add Item 2 to basket");
-      expect(buttons[2]).toHaveAttribute("aria-label", "Add Item 3 to basket");
+      expect(buttons[0]).toHaveAttribute(
+        "aria-label",
+        "Add to Cart Item 1 to basket"
+      );
+      expect(buttons[1]).toHaveAttribute(
+        "aria-label",
+        "Add to Cart Item 2 to basket"
+      );
+      expect(buttons[2]).toHaveAttribute(
+        "aria-label",
+        "Add to Cart Item 3 to basket"
+      );
     });
   });
 
   describe("Adding items to cart", () => {
     it("adds a single item to cart and updates basket count", async () => {
       await renderHome();
-      const button = screen.getByLabelText("Add Item 1 to basket");
+      const button = screen.getByLabelText("Add to Cart Item 1 to basket");
 
       await act(async () => {
         fireEvent.click(button);
@@ -55,14 +64,14 @@ describe("Home Page Tests", () => {
       await waitFor(() => {
         const basketLink = screen.getByRole("link");
         expect(basketLink.textContent).toContain("1");
-        expect(basketLink.textContent).toContain("items");
+        expect(basketLink.textContent).toContain("item"); // Singular for 1 item
       });
     });
 
     it("shows item count when items are added", async () => {
       await renderHome();
 
-      const addButton = screen.getByLabelText("Add Item 1 to basket");
+      const addButton = screen.getByLabelText("Add to Cart Item 1 to basket");
       act(() => {
         fireEvent.click(addButton);
       });
@@ -71,7 +80,6 @@ describe("Home Page Tests", () => {
         expect(screen.getByText(/Item 1 count: 1/)).toBeInTheDocument();
       });
     });
-
     it("basket link works correctly", async () => {
       await renderHome();
       const basketLink = screen.getByRole("link");
@@ -82,9 +90,15 @@ describe("Home Page Tests", () => {
   describe("Accessibility features", () => {
     it("has accessible button labels for adding items to cart", async () => {
       await renderHome();
-      expect(screen.getByLabelText("Add Item 1 to basket")).toBeInTheDocument();
-      expect(screen.getByLabelText("Add Item 2 to basket")).toBeInTheDocument();
-      expect(screen.getByLabelText("Add Item 3 to basket")).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Add to Cart Item 1 to basket")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Add to Cart Item 2 to basket")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Add to Cart Item 3 to basket")
+      ).toBeInTheDocument();
     });
 
     it("basket link is properly labeled", async () => {

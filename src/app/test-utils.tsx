@@ -66,11 +66,10 @@ export async function renderHome(withCartData = false) {
   ];
 
   const ClientCart = (await import("./components/ClientCart")).default;
-  return render(<ClientCart products={mockProducts} />);
+  return render(<ClientCart products={mockProducts} locale="uk" />);
 }
 
 export async function renderCheckoutPage(withCartData = true) {
-  // Set cart data by default for checkout page tests
   if (withCartData) {
     setMockCartData([
       { id: "1", name: "Item 1", price: 8.0, quantity: 2 },
@@ -105,5 +104,5 @@ export async function renderCheckoutPage(withCartData = true) {
   ];
 
   const ClientCheckout = (await import("./components/ClientCheckout")).default;
-  return render(<ClientCheckout products={mockProducts} />);
+  return render(<ClientCheckout products={mockProducts} locale="uk" />);
 }

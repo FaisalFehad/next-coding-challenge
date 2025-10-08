@@ -1,3 +1,5 @@
+import { Locale, formatCurrency } from "../lib/i18n";
+
 export interface Product {
   id: number;
   name: {
@@ -91,12 +93,32 @@ export async function fetchMoreProductsClient(): Promise<Product[]> {
   }
 }
 
-export function getProductData(product: Product) {
+export function getProductData(product: Product, locale: Locale = "uk") {
+  const name = getLocalizedProductName(product, locale);
+  const price = getLocalizedProductPrice(product, locale);
+  const description = `${formatCurrency(price, locale)} - ${
+    product.stock
+  } in stock`;
+
   return {
     id: product.id.toString(),
-    name: product.name.uk,
-    description: `£${product.price.gbp} - ${product.stock} in stock`,
-    price: product.price.gbp,
+    name,
+    description,
+    price,
     stock: product.stock,
   };
+}
+
+export function getLocalizedProductName(
+  product: Product,
+  locale: Locale
+): string {
+  return locale === "us" ? product.name.us : product.name.uk;
+}
+
+export function getLocalizedProductPrice(
+  product: Product,
+  locale: Locale
+): number {
+  return locale === "us" ? product.price.usd : product.price.gbp;
 }

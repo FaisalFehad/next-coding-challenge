@@ -1,23 +1,22 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Cookies from "js-cookie";
 import styles from "../page.module.css";
 import { fetchMoreProductsClient, getProductData } from "../api/products";
-
-interface CartItem {
-  id: string;
-  name: string;
-  quantity: number;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-}
+import {
+  Locale,
+  defaultLocale,
+  getCartText,
+  getCheckoutUrl,
+} from "../lib/i18n";
+import { CartItem, Product } from "../lib/types";
+import {
+  getCartFromCookies,
+  saveCartToCookies,
+  addItemToCart,
+  getTotalItems,
+} from "../lib/cart-utils";
+import LocaleSwitcher from "./LocaleSwitcher";
 
 const ItemCount = ({ count, name }: { count: number; name: string }) => {
   return (
@@ -29,26 +28,22 @@ const ItemCount = ({ count, name }: { count: number; name: string }) => {
 
 interface ClientCartProps {
   products: Product[];
+  locale?: Locale;
 }
 
 export default function ClientCart({
   products: initialProducts,
+  locale = defaultLocale,
 }: ClientCartProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
   const [moreProductsLoaded, setMoreProductsLoaded] = useState(false);
 
+  const cartText = getCartText(locale);
+
   useEffect(() => {
-    const savedCart = Cookies.get("cart");
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        setCartItems(parsedCart);
-      } catch (error) {
-        console.error("Error parsing cart from cookie:", error);
-      }
-    }
+    setCartItems(getCartFromCookies());
   }, []);
 
   useEffect(() => {
@@ -56,7 +51,9 @@ export default function ClientCart({
       setLoadingMoreProducts(true);
       fetchMoreProductsClient()
         .then((moreProducts) => {
-          const transformedProducts = moreProducts.map(getProductData);
+          const transformedProducts = moreProducts.map((product) =>
+            getProductData(product, locale)
+          );
           const uniqueProducts = transformedProducts.filter(
             (newProduct) =>
               !products.some((existing) => existing.id === newProduct.id)
@@ -71,43 +68,28 @@ export default function ClientCart({
           setLoadingMoreProducts(false);
         });
     }
-  }, [products, moreProductsLoaded]);
+  }, [products, moreProductsLoaded, locale]);
 
   const addToCart = (productId: string) => {
     const product = products.find((p) => p.id === productId);
     if (!product) return;
 
-    const alreadyInCart = cartItems.find((item) => item.id === productId);
-    let updatedCart: CartItem[];
-
-    if (alreadyInCart) {
-      updatedCart = cartItems.map((item) =>
-        item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
-      );
-    } else {
-      updatedCart = [
-        ...cartItems,
-        { id: productId, name: product.name, quantity: 1 },
-      ];
-    }
-
+    const updatedCart = addItemToCart(cartItems, productId, product.name);
     setCartItems(updatedCart);
-    Cookies.set("cart", JSON.stringify(updatedCart), { expires: 7 });
+    saveCartToCookies(updatedCart);
   };
 
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  const getCheckoutUrl = () => {
-    return "/checkout";
-  };
+  const totalItems = getTotalItems(cartItems);
+  const checkoutUrl = getCheckoutUrl(locale);
 
   return (
     <>
+      <LocaleSwitcher />
       <div className={styles.description}>
         <p>Michael&apos;s Amazing Web Store</p>
         <div>
-          <Link href={getCheckoutUrl()} className={styles.basket}>
-            Basket: {totalItems} items
+          <Link href={checkoutUrl} className={styles.basket}>
+            {cartText}: {totalItems} {totalItems === 1 ? "item" : "items"}
           </Link>
           {cartItems.map((item) => (
             <ItemCount key={item.id} name={item.name} count={item.quantity} />
@@ -121,7 +103,9 @@ export default function ClientCart({
             key={product.id}
             className={styles.card}
             onClick={() => addToCart(product.id)}
-            aria-label={`Add ${product.name} to basket`}
+            aria-label={`Add to Cart ${
+              product.name
+            } to ${cartText.toLowerCase()}`}
             disabled={product.stock === 0}
           >
             <h2>
