@@ -2,6 +2,11 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Home from "./page";
 
+jest.mock("js-cookie", () => ({
+  get: jest.fn(),
+  set: jest.fn(),
+}));
+
 jest.mock("./items", () => ({
   products: [
     { id: "Item 1", name: "Item name 1", description: "Test description 1" },
@@ -16,7 +21,13 @@ const mockProducts = [
   { id: "Item 3", name: "Item name 3", description: "Test description 3" },
 ];
 
+const Cookies = require("js-cookie");
+
 describe("Home Page Tests", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Cookies.get.mockReturnValue(null);
+  });
   describe("Initial rendering", () => {
     beforeEach(() => {
       render(<Home />);
@@ -202,10 +213,10 @@ describe("Home Page Tests", () => {
       });
     });
 
-    it("basket button is properly labeled", () => {
+    it("basket link is properly labeled", () => {
       render(<Home />);
-      const basketButton = screen.getByText(/Basket:.*0.*items/);
-      expect(basketButton).toBeInstanceOf(HTMLButtonElement);
+      const basketLink = screen.getByText(/Basket:.*0.*items/);
+      expect(basketLink).toBeInstanceOf(HTMLAnchorElement);
     });
   });
 });

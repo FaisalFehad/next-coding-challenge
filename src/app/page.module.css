@@ -50,7 +50,15 @@
   border: 1px solid rgba(var(--card-border-rgb), 0);
   font-family: inherit;
   text-align: left;
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
   transition: background 200ms, border 200ms;
+}
+
+.basket:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .card span {
