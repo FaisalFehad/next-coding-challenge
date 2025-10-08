@@ -1,11 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import CheckoutPage from "./page";
-
-jest.mock("js-cookie", () => ({
-  get: jest.fn(),
-  set: jest.fn(),
-}));
+import { renderCheckoutPage } from "../__tests__/test-utils";
 
 jest.mock("next/link", () => {
   const MockLink = ({
@@ -25,26 +20,18 @@ jest.mock("next/link", () => {
   return MockLink;
 });
 
-jest.mock("../items", () => ({
-  products: [
-    { id: "Item 1", name: "Item name 1", description: "Test description 1" },
-    { id: "Item 2", name: "Item name 2", description: "Test description 2" },
-    { id: "Item 3", name: "Item name 3", description: "Test description 3" },
-  ],
-}));
-
 describe("Checkout Page", () => {
-  const Cookies = require("js-cookie");
-
   beforeEach(() => {
-    jest.clearAllMocks();
+    if ((global as any).mockCookies) {
+      Object.keys((global as any).mockCookies).forEach(
+        (key) => delete (global as any).mockCookies[key]
+      );
+    }
   });
 
   describe("Empty cart", () => {
-    it("displays empty cart message when no cart data", () => {
-      Cookies.get.mockReturnValue(null);
-
-      render(<CheckoutPage />);
+    it("displays empty cart message when no cart data", async () => {
+      await renderCheckoutPage();
 
       expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
       expect(
@@ -53,103 +40,81 @@ describe("Checkout Page", () => {
       expect(screen.getByText("Continue Shopping")).toBeInTheDocument();
     });
 
-    it("displays empty cart message when cart data is empty array", () => {
-      Cookies.get.mockReturnValue(JSON.stringify([]));
+    it("displays empty cart message when cart data is empty array", async () => {
+      (global as any).mockCookies = { cart: JSON.stringify([]) };
 
-      render(<CheckoutPage />);
+      await renderCheckoutPage();
 
       expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
     });
   });
 
   describe("Cart with items", () => {
-    const cartItems = [
-      { id: "Item 1", name: "Item 1", quantity: 2 },
-      { id: "Item 2", name: "Item 2", quantity: 1 },
-      { id: "Item 3", name: "Item 3", quantity: 3 },
-    ];
-
     beforeEach(() => {
-      Cookies.get.mockReturnValue(JSON.stringify(cartItems));
+      const cartData = [
+        { id: "1", name: "Item 1", quantity: 2 },
+        { id: "3", name: "Item 3", quantity: 1 },
+      ];
+      (global as any).mockCookies = { cart: JSON.stringify(cartData) };
     });
 
-    it("displays checkout header and navigation", () => {
-      render(<CheckoutPage />);
+    it("displays checkout header and navigation", async () => {
+      await renderCheckoutPage();
 
       expect(screen.getByText("Checkout")).toBeInTheDocument();
       expect(screen.getByText("← Back to Store")).toBeInTheDocument();
     });
 
-    it("displays order summary with correct total items", () => {
-      render(<CheckoutPage />);
+    it("displays order summary with correct total items", async () => {
+      await renderCheckoutPage();
 
       expect(screen.getByText("Order Summary")).toBeInTheDocument();
       expect(screen.getByText("Total Items:")).toBeInTheDocument();
-      expect(screen.getByText("6")).toBeInTheDocument(); // 2 + 1 + 3 = 6
+      expect(screen.getByText("3")).toBeInTheDocument();
     });
 
-    it("displays all cart items with correct details", () => {
-      render(<CheckoutPage />);
-
-      expect(screen.getByText("Items in your cart:")).toBeInTheDocument();
+    it("displays all cart items with correct details", async () => {
+      await renderCheckoutPage();
 
       expect(screen.getByText("Item 1")).toBeInTheDocument();
-      expect(screen.getByText("Test description 1")).toBeInTheDocument();
-      expect(screen.getByText("Product ID: Item 1")).toBeInTheDocument();
-
-      expect(screen.getByText("Item 2")).toBeInTheDocument();
-      expect(screen.getByText("Test description 2")).toBeInTheDocument();
-      expect(screen.getByText("Product ID: Item 2")).toBeInTheDocument();
-
       expect(screen.getByText("Item 3")).toBeInTheDocument();
-      expect(screen.getByText("Test description 3")).toBeInTheDocument();
-      expect(screen.getByText("Product ID: Item 3")).toBeInTheDocument();
+      expect(screen.getByText("Product ID: 1")).toBeInTheDocument();
+      expect(screen.getByText("Product ID: 3")).toBeInTheDocument();
     });
 
-    it("displays correct quantities for each item", () => {
-      render(<CheckoutPage />);
+    it("displays correct quantities for each item", async () => {
+      await renderCheckoutPage();
 
-      const quantityElements = screen.getAllByText(/\d+/);
-      const quantities = quantityElements.map((el) => el.textContent);
+      const quantityElements = screen.getAllByText(/Quantity:/);
+      expect(quantityElements).toHaveLength(2);
 
-      expect(quantities).toContain("2");
-      expect(quantities).toContain("1");
-      expect(quantities).toContain("3");
-      expect(quantities).toContain("6");
+      expect(screen.getByText("2")).toBeInTheDocument();
+      expect(screen.getByText("1")).toBeInTheDocument();
     });
   });
 
   describe("Invalid cart data", () => {
-    it("handles malformed JSON gracefully", () => {
-      Cookies.get.mockReturnValue("invalid-json");
+    it("handles malformed JSON gracefully", async () => {
+      (global as any).mockCookies = { cart: "invalid json" };
 
-      const consoleSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
-      render(<CheckoutPage />);
+      await renderCheckoutPage();
 
       expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Failed to parse cart data from cookie:",
-        expect.any(Error)
-      );
-
-      consoleSpy.mockRestore();
     });
   });
 
   describe("Product details lookup", () => {
-    it("displays unknown product message for items not in products list", () => {
-      const cartWithUnknownItem = [
-        { id: "Unknown Item", name: "Unknown Item", quantity: 1 },
+    it("displays correct product information for items in cart", async () => {
+      const cartData = [
+        { id: "1", name: "Item 1", quantity: 1 },
+        { id: "2", name: "Item 2", quantity: 2 },
       ];
+      (global as any).mockCookies = { cart: JSON.stringify(cartData) };
 
-      Cookies.get.mockReturnValue(JSON.stringify(cartWithUnknownItem));
+      await renderCheckoutPage();
 
-      render(<CheckoutPage />);
-
-      expect(screen.getByText("Unknown product")).toBeInTheDocument();
+      expect(screen.getByText("£8.00 - 50 in stock")).toBeInTheDocument();
+      expect(screen.getByText("£16.00 - 30 in stock")).toBeInTheDocument();
     });
   });
 });

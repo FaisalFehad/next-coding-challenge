@@ -108,11 +108,23 @@
 .totalItems {
   font-size: 1.2rem;
   color: rgba(var(--foreground-rgb), 0.8);
+  margin-bottom: 0.5rem;
 }
 
 .totalItems strong {
   color: rgba(var(--foreground-rgb), 1);
   font-size: 1.4rem;
+}
+
+.totalPrice {
+  font-size: 1.4rem;
+  color: rgba(var(--foreground-rgb), 0.9);
+  font-weight: 600;
+}
+
+.totalPrice strong {
+  color: rgba(var(--foreground-rgb), 1);
+  font-size: 1.6rem;
 }
 
 .cartItems h3 {
@@ -147,6 +159,24 @@
   margin-right: 2rem;
 }
 
+.itemQuantity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  margin-right: 1rem;
+}
+
+.itemTotal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(var(--foreground-rgb), 0.9);
+}
+
 .itemName {
   margin: 0 0 0.5rem 0;
   font-size: 1.2rem;
@@ -165,6 +195,13 @@
   font-size: 0.8rem;
   color: rgba(var(--foreground-rgb), 0.5);
   font-family: var(--font-mono);
+  margin-bottom: 0.25rem;
+}
+
+.itemPrice {
+  font-size: 0.9rem;
+  color: rgba(var(--foreground-rgb), 0.7);
+  font-weight: 500;
 }
 
 .itemQuantity {

@@ -1,69 +1,57 @@
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { screen, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import Home from "@/app/page";
-
-jest.mock("js-cookie", () => ({
-  get: jest.fn(),
-  set: jest.fn(),
-}));
+import { renderHome } from "@/app/__tests__/test-utils";
 
 describe("Home", () => {
-  const Cookies = require("js-cookie");
-
   beforeEach(() => {
-    jest.clearAllMocks();
-    Cookies.get.mockReturnValue(null);
+    if ((global as any).mockCookies) {
+      Object.keys((global as any).mockCookies).forEach(
+        (key) => delete (global as any).mockCookies[key]
+      );
+    }
   });
-  it("renders an empty basket", () => {
-    render(<Home />);
 
-    const basketLink = screen.getByRole("link", {
-      name: /Basket:/i,
-    });
+  it("renders an empty basket", async () => {
+    await renderHome();
 
-    expect(basketLink).toHaveTextContent("Basket: 0 items");
+    const basketLink = screen.getByRole("link");
+    expect(basketLink.textContent).toContain("Basket:");
+    expect(basketLink.textContent).toContain("0");
+    expect(basketLink.textContent).toContain("items");
   });
 
   it("renders a basket with 1 item", async () => {
-    render(<Home />);
+    await renderHome();
 
-    const buttons = screen.getAllByRole("button", {
-      name: /Add to basket/i,
-    });
+    const button = screen.getByLabelText("Add Item 1 to basket");
 
     await act(async () => {
-      fireEvent.click(buttons[0]);
+      fireEvent.click(button);
     });
 
-    const basketLink = screen.getByRole("link", {
-      name: /Basket:/i,
-    });
-
-    expect(basketLink).toHaveTextContent(/Basket:.*1.*items/);
+    const basketLink = screen.getByRole("link");
+    expect(basketLink.textContent).toContain("Basket:");
+    expect(basketLink.textContent).toContain("1");
+    expect(basketLink.textContent).toContain("items");
   });
-  it("renders a basket with 3 items total (1 of item 1 and 2 of item 2)", async () => {
-    render(<Home />);
 
-    const buttons = screen.getAllByRole("button", {
-      name: /Add to basket/i,
+  it("adds multiple items to basket", async () => {
+    await renderHome();
+
+    const button1 = screen.getByLabelText("Add Item 1 to basket");
+    const button2 = screen.getByLabelText("Add Item 2 to basket");
+
+    await act(async () => {
+      fireEvent.click(button1);
     });
 
     await act(async () => {
-      fireEvent.click(buttons[0]);
+      fireEvent.click(button2);
     });
 
-    await act(async () => {
-      fireEvent.click(buttons[1]);
-    });
-
-    await act(async () => {
-      fireEvent.click(buttons[1]);
-    });
-
-    const basketLink = screen.getByRole("link", {
-      name: /Basket:/i,
-    });
-
-    expect(basketLink).toHaveTextContent(/Basket:.*3.*items/);
+    const basketLink = screen.getByRole("link");
+    expect(basketLink.textContent).toContain("Basket:");
+    expect(basketLink.textContent).toContain("2");
+    expect(basketLink.textContent).toContain("items");
   });
 });

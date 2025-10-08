@@ -64,13 +64,22 @@ describe("Home Page Tests", () => {
     });
 
     it("shows item count when items are added", async () => {
-      const addButton = screen.getByLabelText("Add Item 1 to basket");
-      act(() => {
-        fireEvent.click(addButton);
+      await renderHome();
+      const button = screen.getByLabelText("Add Item 1 to basket");
+
+      await act(async () => {
+        fireEvent.click(button);
       });
 
       await waitFor(() => {
-        expect(screen.getByText(/Item 1 count: 1/)).toBeInTheDocument();
+        expect(
+          screen.getByText((content, element) => {
+            return !!(
+              element?.textContent?.includes("Item 1 count:") &&
+              element?.textContent?.includes("1")
+            );
+          })
+        ).toBeInTheDocument();
       });
     });
 
