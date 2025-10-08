@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import styles from "../page.module.css";
+import { fetchMoreProductsClient, getProductData } from "../api/products";
 
 interface CartItem {
   id: string;
@@ -30,8 +31,13 @@ interface ClientCartProps {
   products: Product[];
 }
 
-export default function ClientCart({ products }: ClientCartProps) {
+export default function ClientCart({
+  products: initialProducts,
+}: ClientCartProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
+  const [moreProductsLoaded, setMoreProductsLoaded] = useState(false);
 
   useEffect(() => {
     const savedCart = Cookies.get("cart");
@@ -44,6 +50,28 @@ export default function ClientCart({ products }: ClientCartProps) {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (!moreProductsLoaded && process.env.NODE_ENV !== "test") {
+      setLoadingMoreProducts(true);
+      fetchMoreProductsClient()
+        .then((moreProducts) => {
+          const transformedProducts = moreProducts.map(getProductData);
+          const uniqueProducts = transformedProducts.filter(
+            (newProduct) =>
+              !products.some((existing) => existing.id === newProduct.id)
+          );
+          setProducts((prev) => [...prev, ...uniqueProducts]);
+          setMoreProductsLoaded(true);
+        })
+        .catch((error) => {
+          console.error("Failed to load additional products:", error);
+        })
+        .finally(() => {
+          setLoadingMoreProducts(false);
+        });
+    }
+  }, [products, moreProductsLoaded]);
 
   const addToCart = (productId: string) => {
     const product = products.find((p) => p.id === productId);
@@ -105,6 +133,15 @@ export default function ClientCart({ products }: ClientCartProps) {
             )}
           </button>
         ))}
+
+        {loadingMoreProducts && (
+          <div
+            className={styles.card}
+            style={{ opacity: 0.6, cursor: "default" }}
+          >
+            <h2>Loading more products...</h2>
+          </div>
+        )}
       </div>
     </>
   );

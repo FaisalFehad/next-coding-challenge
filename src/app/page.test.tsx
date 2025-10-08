@@ -1,14 +1,10 @@
 import { screen, fireEvent, act, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { renderHome } from "./__tests__/test-utils";
+import { renderHome, clearMockCartData } from "./test-utils";
 
 describe("Home Page Tests", () => {
   beforeEach(() => {
-    if ((global as any).mockCookies) {
-      Object.keys((global as any).mockCookies).forEach(
-        (key) => delete (global as any).mockCookies[key]
-      );
-    }
+    clearMockCartData();
   });
 
   describe("Initial rendering", () => {
@@ -64,6 +60,8 @@ describe("Home Page Tests", () => {
     });
 
     it("shows item count when items are added", async () => {
+      await renderHome();
+
       const addButton = screen.getByLabelText("Add Item 1 to basket");
       act(() => {
         fireEvent.click(addButton);

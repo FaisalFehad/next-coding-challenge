@@ -1,14 +1,10 @@
 import { screen, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { renderHome } from "@/app/__tests__/test-utils";
+import { renderHome, clearMockCartData } from "./src/app/test-utils";
 
 describe("Home", () => {
   beforeEach(() => {
-    if ((global as any).mockCookies) {
-      Object.keys((global as any).mockCookies).forEach(
-        (key) => delete (global as any).mockCookies[key]
-      );
-    }
+    clearMockCartData();
   });
 
   it("renders an empty basket", async () => {

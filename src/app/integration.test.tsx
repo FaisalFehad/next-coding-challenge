@@ -1,6 +1,6 @@
 import { screen, fireEvent, act, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { renderHome } from "./__tests__/test-utils";
+import { renderHome, clearMockCartData } from "./test-utils";
 
 jest.mock("next/link", () => {
   const MockLink = ({
@@ -22,11 +22,7 @@ jest.mock("next/link", () => {
 
 describe("Shopping Cart Integration", () => {
   beforeEach(() => {
-    if ((global as any).mockCookies) {
-      Object.keys((global as any).mockCookies).forEach(
-        (key) => delete (global as any).mockCookies[key]
-      );
-    }
+    clearMockCartData();
   });
 
   it("navigates to checkout with correct cart data when basket is clicked", async () => {
